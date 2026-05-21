@@ -641,24 +641,25 @@ export default class WalletWireTransceiver implements WalletInterface {
 
   async revealSpecificKeyLinkage (
     args: {
-      counterparty: PubKeyHex
+      counterparty: PubKeyHex | 'self' | 'anyone'
       verifier: PubKeyHex
       protocolID: [SecurityLevel, ProtocolString5To400Bytes]
       keyID: KeyIDStringUnder800Bytes
+      proofType?: 0 | 1
       privilegedReason?: DescriptionString5to50Bytes
       privileged?: BooleanDefaultFalse
     },
     originator?: OriginatorDomainNameStringUnder250Bytes
   ): Promise<{
-      prover: PubKeyHex
-      verifier: PubKeyHex
-      counterparty: PubKeyHex
-      protocolID: [SecurityLevel, ProtocolString5To400Bytes]
-      keyID: KeyIDStringUnder800Bytes
-      encryptedLinkage: Byte[]
-      encryptedLinkageProof: Byte[]
-      proofType: Byte
-    }> {
+    prover: PubKeyHex
+    verifier: PubKeyHex
+    counterparty: PubKeyHex
+    protocolID: [SecurityLevel, ProtocolString5To400Bytes]
+    keyID: KeyIDStringUnder800Bytes
+    encryptedLinkage: Byte[]
+    encryptedLinkageProof: Byte[]
+    proofType: 0 | 1
+  }> {
     const paramWriter = new Utils.Writer()
     paramWriter.write(
       this.encodeKeyRelatedParams(
@@ -670,6 +671,7 @@ export default class WalletWireTransceiver implements WalletInterface {
       )
     )
     paramWriter.write(Utils.toArray(args.verifier, 'hex'))
+    if (args.proofType !== undefined) paramWriter.writeUInt8(args.proofType)
     const result = await this.transmit(
       'revealSpecificKeyLinkage',
       originator,
@@ -691,6 +693,12 @@ export default class WalletWireTransceiver implements WalletInterface {
       encryptedLinkageProofLength
     )
     const proofType = resultReader.readUInt8()
+    if (proofType !== 0 && proofType !== 1) {
+      throw new Error('Unsupported specific key linkage proof type')
+    }
+    if (!resultReader.eof()) {
+      throw new Error('Unexpected trailing revealSpecificKeyLinkage result bytes')
+    }
     return {
       prover,
       verifier,

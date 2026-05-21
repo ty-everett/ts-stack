@@ -255,10 +255,11 @@ export default class WalletClient implements WalletInterface {
   }
 
   async revealSpecificKeyLinkage (args: {
-    counterparty: PubKeyHex
+    counterparty: PubKeyHex | 'self' | 'anyone'
     verifier: PubKeyHex
     protocolID: [SecurityLevel, ProtocolString5To400Bytes]
     keyID: KeyIDStringUnder800Bytes
+    proofType?: 0 | 1
     privilegedReason?: DescriptionString5to50Bytes
     privileged?: BooleanDefaultFalse
   }): Promise<{
@@ -269,7 +270,7 @@ export default class WalletClient implements WalletInterface {
       keyID: KeyIDStringUnder800Bytes
       encryptedLinkage: Byte[]
       encryptedLinkageProof: Byte[]
-      proofType: Byte
+      proofType: 0 | 1
     }> {
     await this.connectToSubstrate()
     return await (this.substrate as WalletInterface).revealSpecificKeyLinkage(

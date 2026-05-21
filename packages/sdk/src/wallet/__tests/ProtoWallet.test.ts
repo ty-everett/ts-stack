@@ -1,6 +1,11 @@
 import ProtoWallet from '../../wallet/ProtoWallet'
 import { Utils, PrivateKey, Hash, Random } from '../../primitives/index'
 import { createNonce, verifyNonce } from '../../auth/utils'
+import type { CreateSpecificKeyLinkageProofArgs } from '../../wallet/brc69'
+import type {
+  WalletEncryptArgs,
+  WalletEncryptResult
+} from '../../wallet/Wallet.interfaces'
 
 const sampleData = [3, 1, 4, 1, 5, 9]
 
@@ -8,6 +13,20 @@ let userKey: PrivateKey
 let counterpartyKey: PrivateKey
 let user: ProtoWallet
 let counterparty: ProtoWallet
+
+type ProofPayloadFactory = (
+  args: CreateSpecificKeyLinkageProofArgs
+) => number[]
+
+const protoWalletProofFactoryHost = ProtoWallet as unknown as {
+  specificKeyLinkageProofPayloadFactory: ProofPayloadFactory
+}
+
+class PlaintextEncryptingProtoWallet extends ProtoWallet {
+  async encrypt (args: WalletEncryptArgs): Promise<WalletEncryptResult> {
+    return { ciphertext: args.plaintext.slice() }
+  }
+}
 
 beforeEach(() => {
   userKey = PrivateKey.fromRandom()
@@ -483,6 +502,100 @@ describe('ProtoWallet', () => {
       expect(linkage).toEqual(expectedLinkage)
     })
 
+    it('Defaults revealSpecificKeyLinkage to the BRC-69 proof payload', async () => {
+      const proverKey = PrivateKey.fromRandom()
+      const counterpartyKey = PrivateKey.fromRandom()
+      const verifierKey = PrivateKey.fromRandom()
+      const proverWallet = new PlaintextEncryptingProtoWallet(proverKey)
+      const protocolID: [0 | 1 | 2, string] = [0, 'tests']
+      const keyID = 'test key id'
+      const counterparty = counterpartyKey.toPublicKey().toString()
+      const proofPayload = [1, 42, 69]
+      const originalFactory =
+        protoWalletProofFactoryHost.specificKeyLinkageProofPayloadFactory
+      let capturedProofArgs: CreateSpecificKeyLinkageProofArgs | undefined
+
+      protoWalletProofFactoryHost.specificKeyLinkageProofPayloadFactory = args => {
+        capturedProofArgs = args
+        return proofPayload.slice()
+      }
+
+      try {
+        const revelation = await proverWallet.revealSpecificKeyLinkage({
+          counterparty,
+          verifier: verifierKey.toPublicKey().toString(),
+          protocolID,
+          keyID
+        })
+
+        expect(revelation.proofType).toBe(1)
+        expect(revelation.encryptedLinkageProof).toEqual(proofPayload)
+        expect(capturedProofArgs?.statement).toMatchObject({
+          prover: proverKey.toPublicKey().toString(),
+          counterparty,
+          protocolID,
+          keyID
+        })
+        expect(capturedProofArgs?.statement.linkage)
+          .toEqual(revelation.encryptedLinkage)
+      } finally {
+        protoWalletProofFactoryHost.specificKeyLinkageProofPayloadFactory =
+          originalFactory
+      }
+    })
+
+    it('Rejects sentinel counterparties for proof type 1 specific linkage proofs', async () => {
+      const proverKey = PrivateKey.fromRandom()
+      const verifierKey = PrivateKey.fromRandom()
+      const proverWallet = new PlaintextEncryptingProtoWallet(proverKey)
+      const baseArgs = {
+        verifier: verifierKey.toPublicKey().toString(),
+        protocolID: [0, 'tests'] as [0 | 1 | 2, string],
+        keyID: 'test key id'
+      }
+
+      await expect(proverWallet.revealSpecificKeyLinkage({
+        ...baseArgs,
+        counterparty: 'self'
+      })).rejects.toThrow('sentinel counterparties require proofType 0')
+      await expect(proverWallet.revealSpecificKeyLinkage({
+        ...baseArgs,
+        counterparty: 'anyone'
+      })).rejects.toThrow('sentinel counterparties require proofType 0')
+    })
+
+    it('Keeps explicit revealSpecificKeyLinkage proofType 0 isolated', async () => {
+      const proverKey = PrivateKey.fromRandom()
+      const counterpartyKey = PrivateKey.fromRandom()
+      const verifierKey = PrivateKey.fromRandom()
+      const proverWallet = new PlaintextEncryptingProtoWallet(proverKey)
+      const originalFactory =
+        protoWalletProofFactoryHost.specificKeyLinkageProofPayloadFactory
+      let factoryCalled = false
+
+      protoWalletProofFactoryHost.specificKeyLinkageProofPayloadFactory = () => {
+        factoryCalled = true
+        throw new Error('proof factory should not be used for proofType 0')
+      }
+
+      try {
+        const revelation = await proverWallet.revealSpecificKeyLinkage({
+          counterparty: counterpartyKey.toPublicKey().toString(),
+          verifier: verifierKey.toPublicKey().toString(),
+          protocolID: [0, 'tests'],
+          keyID: 'test key id',
+          proofType: 0
+        })
+
+        expect(revelation.proofType).toBe(0)
+        expect(revelation.encryptedLinkageProof).toEqual([0])
+        expect(factoryCalled).toBe(false)
+      } finally {
+        protoWalletProofFactoryHost.specificKeyLinkageProofPayloadFactory =
+          originalFactory
+      }
+    })
+
     it('Validates the revealSpecificKeyLinkage function', async () => {
       // Initialize keys
       const proverKey = PrivateKey.fromRandom()
@@ -501,7 +614,8 @@ describe('ProtoWallet', () => {
         counterparty: counterpartyKey.toPublicKey().toString(),
         verifier: verifierKey.toPublicKey().toString(),
         protocolID,
-        keyID
+        keyID,
+        proofType: 0
       })
 
       // Verifier decrypts the encrypted linkage

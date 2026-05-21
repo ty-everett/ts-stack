@@ -1528,6 +1528,16 @@ export default class WalletWireProcessor implements WalletWire {
           // Read verifier public key
           const verifierBytes = paramsReader.read(33)
           args.verifier = Utils.toHex(verifierBytes)
+          if (!paramsReader.eof()) {
+            const proofType = paramsReader.readUInt8()
+            if (proofType !== 0 && proofType !== 1) {
+              throw new Error('Unsupported specific key linkage proof type')
+            }
+            args.proofType = proofType
+            if (!paramsReader.eof()) {
+              throw new Error('Unexpected trailing revealSpecificKeyLinkage request bytes')
+            }
+          }
 
           // Call the method
           const revealResult = await this.wallet.revealSpecificKeyLinkage(

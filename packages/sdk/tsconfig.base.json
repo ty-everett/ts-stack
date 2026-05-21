@@ -33,6 +33,8 @@
   "exclude": [
     "dist",
     "**/__tests__/**",
-    "**/__tests/**"
+    "**/__tests/**",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

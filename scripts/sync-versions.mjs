@@ -29,7 +29,7 @@ const ROOT = resolve(__dirname, '..')
 const DRY_RUN = process.argv.includes('--dry-run')
 
 // --- 1. Collect all workspace package.json paths ---
-const output = execSync('pnpm -r ls --json --depth 0', { cwd: ROOT }).toString()
+const output = execSync('corepack pnpm -r ls --json --depth 0', { cwd: ROOT }).toString()
 const pkgList = JSON.parse(output)
 
 // Build name → { path, version } map

@@ -2,6 +2,12 @@
 
 The benchmark scripts measure extremely large number operations and script number serialization performance.
 
+## BRC-69 Method 2 Whole-Statement ZK
+
+The current BRC-69 Method 2 proof path, production validation run, bottlenecks,
+and soundness notes are tracked in one place:
+[BRC-69 Method 2 Whole-Statement ZK](./brc69-production-status.md).
+
 All results below were gathered on Node.js v22.16.0 using the `dist` build of the SDK. Each benchmark was executed with 200,000-digit inputs to stress the implementation.
 
 ## Addition and Multiplication

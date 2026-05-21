@@ -31,6 +31,12 @@ import {
   WalletEncryptResult
 } from './Wallet.interfaces.js'
 import { constantTimeEquals, toArray } from '../primitives/utils.js'
+import {
+  CreateSpecificKeyLinkageProofArgs,
+  createSpecificKeyLinkageProof,
+  normalizeSpecificKeyLinkageCounterparty,
+  serializeSpecificKeyLinkageProofPayload
+} from './brc69/index.js'
 
 /**
  * A ProtoWallet is precursor to a full wallet, capable of performing all foundational cryptographic operations.
@@ -41,6 +47,13 @@ import { constantTimeEquals, toArray } from '../primitives/utils.js'
  */
 export class ProtoWallet {
   keyDeriver?: KeyDeriverApi
+
+  private static readonly specificKeyLinkageProofPayloadFactory = (
+    args: CreateSpecificKeyLinkageProofArgs
+  ): number[] =>
+    serializeSpecificKeyLinkageProofPayload(
+      createSpecificKeyLinkageProof(args)
+    )
 
   constructor (rootKeyOrKeyDeriver?: PrivateKey | 'anyone' | KeyDeriverApi) {
     if (typeof (rootKeyOrKeyDeriver as KeyDeriver).identityKey !== 'string') {
@@ -136,6 +149,15 @@ export class ProtoWallet {
     if (this.keyDeriver == null) {
       throw new Error('keyDeriver is undefined')
     }
+    const proofType = args.proofType ?? 1
+    if (proofType !== 0 && proofType !== 1) {
+      throw new Error('Unsupported specific key linkage proof type')
+    }
+    const counterparty = normalizeSpecificKeyLinkageCounterparty(
+      args.counterparty,
+      identityKey,
+      { allowSentinelCounterparty: proofType === 0 }
+    )
     const linkage = this.keyDeriver.revealSpecificSecret(
       args.counterparty,
       args.protocolID,
@@ -150,8 +172,20 @@ export class ProtoWallet {
       keyID: args.keyID,
       counterparty: args.verifier
     })
+    const proofPlaintext = proofType === 0
+      ? [0]
+      : ProtoWallet.specificKeyLinkageProofPayloadFactory({
+        proverPrivateKey: this.keyDeriver.rootKey,
+        statement: {
+          prover: identityKey,
+          counterparty,
+          protocolID: args.protocolID,
+          keyID: args.keyID,
+          linkage
+        }
+      })
     const { ciphertext: encryptedLinkageProof } = await this.encrypt({
-      plaintext: [0], // Proof type 0, no proof provided
+      plaintext: proofPlaintext,
       protocolID: [
         2,
         `specific linkage revelation ${args.protocolID[0]} ${args.protocolID[1]}`
@@ -162,12 +196,12 @@ export class ProtoWallet {
     return {
       prover: identityKey,
       verifier: args.verifier,
-      counterparty: args.counterparty,
+      counterparty,
       protocolID: args.protocolID,
       keyID: args.keyID,
       encryptedLinkage,
       encryptedLinkageProof,
-      proofType: 0
+      proofType
     }
   }
 

@@ -17,7 +17,7 @@ import { execSync } from 'node:child_process'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
 
-const output = execSync('pnpm -r ls --json --depth 0', { cwd: ROOT }).toString()
+const output = execSync('corepack pnpm -r ls --json --depth 0', { cwd: ROOT }).toString()
 const pkgList = JSON.parse(output)
 
 const workspaceMap = {}

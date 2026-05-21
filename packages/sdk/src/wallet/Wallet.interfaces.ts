@@ -643,7 +643,7 @@ export interface GetPublicKeyArgs extends Partial<WalletEncryptionArgs> {
 }
 
 /**
- * @param {PubKeyHex} counterparty - The public key of the counterparty involved in the linkage.
+ * @param {WalletCounterparty} counterparty - The counterparty involved in the linkage. Proof type 1 only accepts a public key; sentinel values require proof type 0.
  * @param {PubKeyHex} verifier - The public key of the verifier requesting the linkage information.
  * @param {DescriptionString5to50Bytes} [privilegedReason] - Reason provided for privileged access, required if this is a privileged operation.
  * @param {BooleanDefaultFalse} [privileged] - Whether this is a privileged request.
@@ -660,6 +660,7 @@ export interface RevealCounterpartyKeyLinkageArgs {
  * @param {PubKeyHex} verifier - The public key of the verifier requesting the linkage information.
  * @param {WalletProtocol} protocolID - The security level and protocol string associated with the linkage information to reveal.
  * @param {KeyIDStringUnder800Bytes} keyID - The key ID associated with the linkage information to reveal.
+ * @param {0|1} [proofType] - Optional proof type. Defaults to 1. Use 0 only for legacy no-proof payloads. Proof type 1 requires an explicit counterparty public key; use proof type 0 for sentinel `self` or `anyone` requests.
  * @param {DescriptionString5to50Bytes} [privilegedReason] - Optional. Reason provided for privileged access, required if this is a privileged operation.
  * @param {BooleanDefaultFalse} [privileged] - Optional. Whether this is a privileged request.
  */
@@ -668,6 +669,7 @@ export interface RevealSpecificKeyLinkageArgs {
   verifier: PubKeyHex
   protocolID: WalletProtocol
   keyID: KeyIDStringUnder800Bytes
+  proofType?: 0 | 1
   privilegedReason?: DescriptionString5to50Bytes
   privileged?: BooleanDefaultFalse
 }
@@ -693,7 +695,7 @@ export interface RevealCounterpartyKeyLinkageResult extends KeyLinkageResult {
 export interface RevealSpecificKeyLinkageResult extends KeyLinkageResult {
   protocolID: WalletProtocol
   keyID: KeyIDStringUnder800Bytes
-  proofType: Byte
+  proofType: 0 | 1
 }
 
 /**

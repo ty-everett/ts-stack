@@ -276,7 +276,7 @@ export class RenewResiliencyError extends Error {
     readonly results: RenewPerHostResult[];
     readonly requiredSuccesses: number;
     readonly successCount: number;
-    constructor(message: string, results: RenewPerHostResult[], requiredSuccesses: number, successCount: number) 
+    constructor(message: string, results: RenewPerHostResult[], requiredSuccesses: number, successCount: number)
 }
 ```
 
@@ -289,9 +289,9 @@ Links: [API](#api), [Interfaces](#interfaces), [Classes](#classes), [Functions](
 
 ```ts
 export class StorageDownloader {
-    constructor(config?: DownloaderConfig) 
-    public async resolve(uhrpUrl: string): Promise<string[]> 
-    public async download(uhrpUrl: string): Promise<DownloadResult> 
+    constructor(config?: DownloaderConfig)
+    public async resolve(uhrpUrl: string): Promise<string[]>
+    public async download(uhrpUrl: string): Promise<DownloadResult>
 }
 ```
 
@@ -302,7 +302,7 @@ See also: [DownloadResult](./storage.md#interface-downloadresult), [DownloaderCo
 Downloads the content from the UHRP URL after validating the hash for integrity.
 
 ```ts
-public async download(uhrpUrl: string): Promise<DownloadResult> 
+public async download(uhrpUrl: string): Promise<DownloadResult>
 ```
 See also: [DownloadResult](./storage.md#interface-downloadresult)
 
@@ -320,7 +320,7 @@ Argument Details
 Resolves the UHRP URL to a list of HTTP URLs where content can be downloaded.
 
 ```ts
-public async resolve(uhrpUrl: string): Promise<string[]> 
+public async resolve(uhrpUrl: string): Promise<string[]>
 ```
 
 Returns
@@ -342,18 +342,18 @@ across one or more storage providers.
 
 ```ts
 export class StorageUploader {
-    constructor(config: UploaderConfig) 
+    constructor(config: UploaderConfig)
     public async estimateCost(params: {
         fileSize: number;
         retentionPeriod: number;
-    }): Promise<EstimateCostResult> 
+    }): Promise<EstimateCostResult>
     public async publishFile(params: {
         file: UploadableFile;
         retentionPeriod: number;
-    }): Promise<UploadFileResult> 
-    public async findFile(uhrpUrl: string, options: HostScopeOptions = {}): Promise<FindFileData> 
-    public async listUploads(options: HostScopeOptions = {}): Promise<any> 
-    public async renewFile(uhrpUrl: string, additionalMinutes: number, options: HostScopeOptions = {}): Promise<RenewFileResult> 
+    }): Promise<UploadFileResult>
+    public async findFile(uhrpUrl: string, options: HostScopeOptions = {}): Promise<FindFileData>
+    public async listUploads(options: HostScopeOptions = {}): Promise<any>
+    public async renewFile(uhrpUrl: string, additionalMinutes: number, options: HostScopeOptions = {}): Promise<RenewFileResult>
 }
 ```
 
@@ -369,7 +369,7 @@ cost `publishFile` would pay. No provider is billed.
 public async estimateCost(params: {
     fileSize: number;
     retentionPeriod: number;
-}): Promise<EstimateCostResult> 
+}): Promise<EstimateCostResult>
 ```
 See also: [EstimateCostResult](./storage.md#interface-estimatecostresult)
 
@@ -381,7 +381,7 @@ longest remaining expiry. Single-host configurations preserve the
 legacy error-message contract verbatim.
 
 ```ts
-public async findFile(uhrpUrl: string, options: HostScopeOptions = {}): Promise<FindFileData> 
+public async findFile(uhrpUrl: string, options: HostScopeOptions = {}): Promise<FindFileData>
 ```
 See also: [FindFileData](./storage.md#interface-findfiledata), [HostScopeOptions](./storage.md#interface-hostscopeoptions)
 
@@ -392,7 +392,7 @@ URLs by the longest expiry observed. One failing host does not hide
 the rest. Single-host configurations preserve the legacy error contract.
 
 ```ts
-public async listUploads(options: HostScopeOptions = {}): Promise<any> 
+public async listUploads(options: HostScopeOptions = {}): Promise<any>
 ```
 See also: [HostScopeOptions](./storage.md#interface-hostscopeoptions)
 
@@ -406,7 +406,7 @@ the resilience threshold cannot be met.
 public async publishFile(params: {
     file: UploadableFile;
     retentionPeriod: number;
-}): Promise<UploadFileResult> 
+}): Promise<UploadFileResult>
 ```
 See also: [UploadFileResult](./storage.md#interface-uploadfileresult), [UploadableFile](./storage.md#interface-uploadablefile)
 

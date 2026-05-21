@@ -3,17 +3,17 @@
   "private": true,
   "description": "BSV TypeScript monorepo — SDK, Wallet, Network, Overlay, Messaging, Middleware, Helpers",
   "scripts": {
-    "build": "pnpm -r --filter '!@bsv/ts-stack' run build",
-    "test": "pnpm -r --filter '!@bsv/ts-stack' run test",
-    "lint": "pnpm -r --filter '!@bsv/ts-stack' run lint",
-    "clean": "pnpm -r --filter '!@bsv/ts-stack' run clean",
+    "build": "corepack pnpm -r --filter '!@bsv/ts-stack' run build",
+    "test": "corepack pnpm -r --filter '!@bsv/ts-stack' run test",
+    "lint": "corepack pnpm -r --filter '!@bsv/ts-stack' run lint",
+    "clean": "corepack pnpm -r --filter '!@bsv/ts-stack' run clean",
     "sync-versions": "node scripts/sync-versions.mjs",
     "check-versions": "node scripts/check-versions.mjs",
     "conformance": "node conformance/runner/src/runner.js",
     "docs:asyncapi": "node scripts/generate-asyncapi-html.mjs",
-    "docs:dev": "pnpm --filter docs-site dev",
-    "docs:build": "pnpm --filter docs-site build",
-    "docs:preview": "pnpm --filter docs-site preview"
+    "docs:dev": "corepack pnpm --filter docs-site dev",
+    "docs:build": "corepack pnpm --filter docs-site build",
+    "docs:preview": "corepack pnpm --filter docs-site preview"
   },
   "devDependencies": {
     "@asyncapi/generator": "^3.2.2",

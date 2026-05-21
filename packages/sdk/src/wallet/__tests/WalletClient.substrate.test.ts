@@ -9,6 +9,11 @@
 
 import WalletClient from '../WalletClient'
 import type { WalletInterface } from '../Wallet.interfaces'
+import WindowCWISubstrate from '../substrates/window.CWI'
+import XDMSubstrate from '../substrates/XDM'
+import WalletWireTransceiver from '../substrates/WalletWireTransceiver'
+import HTTPWalletJSON from '../substrates/HTTPWalletJSON'
+import ReactNativeWebView from '../substrates/ReactNativeWebView'
 
 // ---------------------------------------------------------------------------
 // Helper: create a fully-mocked substrate and an already-connected WalletClient
@@ -166,7 +171,7 @@ describe('WalletClient.revealSpecificKeyLinkage – substrate delegation', () =>
       keyID: '1',
       encryptedLinkage: [1],
       encryptedLinkageProof: [2],
-      proofType: 1,
+      proofType: 1 as const,
     }
     mock.revealSpecificKeyLinkage.mockResolvedValue(fakeResult)
     const client = clientWith(mock)

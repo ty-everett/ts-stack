@@ -219,14 +219,15 @@
     }
   },
   "scripts": {
-    "test": "npm run build && jest",
-    "test:watch": "npm run build && jest --watch",
-    "test:coverage": "npm run build && jest --coverage --watchman=false",
+    "test": "npm run build && node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js",
+    "test:watch": "npm run build && node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "npm run build && node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --coverage --watchman=false",
     "lint:ci": "ts-standard src/**/*.ts",
     "lint": "ts-standard --fix src/**/*.ts",
     "build": "npm run build:ts && npm run build:umd",
     "build:ts": "tsc -b && tsconfig-to-dual-package tsconfig.cjs.json",
     "build:umd": "rspack --config rspack.config.js",
+    "brc69:metrics": "npm run build:ts && node --max-old-space-size=98304 scripts/brc69-metrics.js",
     "dev": "tsc -b -w",
     "prepublish": "npm run build",
     "doc": "ts2md",
